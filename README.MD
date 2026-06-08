@@ -4,7 +4,7 @@ A simple rental management REST API built with Go.
 
 This project was created for learning and portfolio purposes, focusing on backend development concepts such as authentication, authorization, database transactions, payment gateway integration, and clean application architecture.
 
-Feel free to use, modify, or explore this project as a reference for your own learning journey.
+Feel free to explore, use, and modify this project as part of your learning journey. Hope it helps and inspires you to build something awesome!
 
 ## Features
 
