@@ -117,7 +117,7 @@ func (h *PaymentHandler) XenditWebhook(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	switch payload.Status {
-	case "paid":
+	case "PAID":
 		err = h.paymentService.HandleInvoicePaid(
 			ctx,
 			payload.ExternalID,
@@ -127,7 +127,7 @@ func (h *PaymentHandler) XenditWebhook(c echo.Context) error {
 			body,
 		)
 
-	case "expired":
+	case "=EXPIRED":
 		err = h.paymentService.HandleInvoiceExpired(
 			ctx,
 			payload.ExternalID,
