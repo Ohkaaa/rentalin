@@ -134,6 +134,13 @@ func (h *PaymentHandler) XenditWebhook(c echo.Context) error {
 			body,
 		)
 
+	case "FAILED":
+		err = h.paymentService.HandleInvoiceFailed(
+			ctx,
+			payload.ExternalID,
+			body,
+		)
+
 	default:
 		return response.SuccessResponse(c, http.StatusOK, "Ignored", nil)
 	}
