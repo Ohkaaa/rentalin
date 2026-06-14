@@ -22,6 +22,7 @@ type PaymentService interface {
 	GetAllPayments(ctx context.Context) ([]*model.Payment, error)
 	HandleInvoicePaid(ctx context.Context, externalID string, paidAmount int64, method string, paymentChannel string, payload []byte) error
 	HandleInvoiceExpired(ctx context.Context, externalID string, payload []byte) error
+	HandleInvoiceFailed(ctx context.Context, externalID string, payload []byte) error
 }
 
 type paymentService struct {
@@ -473,6 +474,75 @@ func (s *paymentService) HandleInvoiceExpired(ctx context.Context, externalID st
 
 	logger.Info(
 		"payment expired successfully",
+		logrus.Fields{
+			"payment_id":  payment.ID,
+			"external_id": externalID,
+		},
+	)
+
+	return nil
+}
+
+func (s *PaymentService) HandleInvoiceFailed(ctx context.Context, externalID string, payload []byte) error {
+	payment, err := s.paymentRepo.GetByExternalID(ctx, externalID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			logger.Warn(
+				"payment not found",
+				logrus.Fields{
+					"external_id": externalID,
+				},
+			)
+
+			return errs.ErrPaymentNotFound
+		}
+
+		logger.Error(
+			"failed get payment",
+			err,
+			logrus.Fields{
+				"external_id": externalID,
+			},
+		)
+
+		return errs.WrapErr("GetByExternalID", err)
+	}
+
+	if payment.Status != model.PaymentPending {
+		logger.Info(
+			"ignore failed webhook because payment already processed",
+			logrus.Fields{
+				"payment_id": payment.ID,
+				"status":     payment.Status,
+			},
+		)
+
+		return nil
+	}
+
+	if err := s.paymentRepo.UpdateStatus(
+		ctx,
+		payment.ID,
+		model.PaymentFailed,
+		nil,
+		nil,
+		nil,
+		payload,
+		nil,
+	); err != nil {
+		logger.Error(
+			"failed update payment failed",
+			err,
+			logrus.Fields{
+				"payment_id": payment.ID,
+			},
+		)
+
+		return errs.WrapErr("UpdateStatus", err)
+	}
+
+	logger.Info(
+		"payment failed successfully",
 		logrus.Fields{
 			"payment_id":  payment.ID,
 			"external_id": externalID,
