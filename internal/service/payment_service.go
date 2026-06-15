@@ -483,8 +483,8 @@ func (s *paymentService) HandleInvoiceExpired(ctx context.Context, externalID st
 	return nil
 }
 
-func (s *PaymentService) HandleInvoiceFailed(ctx context.Context, externalID string, payload []byte) error {
-	payment, err := s.paymentRepo.GetByExternalID(ctx, externalID)
+func (s *paymentService) HandleInvoiceFailed(ctx context.Context, externalID string, payload []byte) error {
+	payment, err := s.paymentRepo.GetByExternalID(ctx,externalID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			logger.Warn(
